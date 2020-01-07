@@ -1,0 +1,18 @@
+{
+	"server":
+	{
+		"is_ssl_certified":true,
+		"ssl_key_path": "/home/certs/privkey.pem",
+		"ssl_cert_path": "/home/certs/fullchain.pem",
+		"port": 1337
+	},
+	"ckan":
+	{
+		"url":"https://kmo-backoffice.data4citizen.com"
+	},
+	"external_access":
+	{
+		"login": "system",
+		"password": "system"
+	}
+}

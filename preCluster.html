@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Geo Cluster</title>
+    </head>
+ 
+    <body>
+        <h1>Pré-Clustering</h1>
+		<div id="logs"></div>
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            var socket = io.connect('http://192.168.2.217:1337');
+			var div = document.getElementById('logs');
+			socket.on('info', function(message) {
+				var node = document.createElement("p");                 // Create a <li> node
+				var textnode = document.createTextNode("INFO: "+ message);         // Create a text node
+				node.appendChild(textnode);
+				div.appendChild(node);
+				//alert(message);
+            });
+			socket.on('error', function(message) {
+				var node = document.createElement("p");
+				var textnode = document.createTextNode("ERROR: "+message);
+				node.appendChild(textnode);
+				node.setAttribute("style", "color: red;");
+				div.appendChild(node);
+            });
+			socket.on('success', function(message) {
+				var node = document.createElement("p");
+				var textnode = document.createTextNode("SUCCESS: "+message);
+				node.appendChild(textnode);
+				node.setAttribute("style", "color: green;");
+				div.appendChild(node);
+            });
+			socket.on('waiting', function(message) {
+				var node = div.lastChild;
+				if(node != null) node.innerText =  node.innerText + message;
+            });
+        </script>
+    </body>
+</html>
