@@ -5,3 +5,5 @@
 /clusters/*.geojson
 /clusters/*.CSV
 /clusters/*.csv
+config.json
+log.txt
