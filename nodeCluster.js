@@ -3,7 +3,7 @@
 var config = require('./config.json');
 
 /* librairie de requete http, depend de si le ckan est ne https ou non*/
-var http;var host;
+var http;var host;var ckan_key = "";
 if(config.ckan.url.startsWith('http')){
 	if(config.ckan.url.startsWith('https://')){
 		http = require('https');
@@ -11,6 +11,9 @@ if(config.ckan.url.startsWith('http')){
 	} else {
 		http = require('http');
 		host = config.ckan.url;
+	}
+	if(config.ckan.api_key != undefined){
+		ckan_key = config.ckan.api_key;
 	}
 } else {
 	console.log("Erreur: l'url du serveur ckan est non valide");
@@ -266,9 +269,12 @@ treatDatasets = function(response, idDataset, createJSON, checkCSV){
 			port: 443,
 			path: '/api/action/package_show?id='+idDataset,
 			method: 'GET',
-			"rejectUnauthorized": false
+			"rejectUnauthorized": false,
+			headers: {
+				'Authorization': ckan_key
+			}
 		};
-		
+		//console.log(opt);
 		var process = function(resp) {
 			var data = '';
 			if(!post) setTimeout(function(){io.sockets.emit("info", "Récupération des informations du jeu de données...");}, 1000);
@@ -280,7 +286,20 @@ treatDatasets = function(response, idDataset, createJSON, checkCSV){
 			
 			// The whole response has been received. Print out the result.
 			resp.on('end', function() {
-				var result = JSON.parse(data).result;
+				var result = JSON.parse(data);
+				if(result.success == false){
+					var err = result.error;
+					console.log("Error: " + err.message);
+					if(!post) {
+						setTimeout(function(){io.sockets.emit("error", err.message);}, 1000);response.writeHead(500, {'Content-Type': 'application/json'});
+						response.end(err.message);
+					} else {
+						response.writeHead(500, {'Content-Type': 'application/json'});
+						response.end(err.message);
+					}
+					return;
+				}
+				result = result.result;
 				var dname = result.name;
 				console.log(dname);
 				var csvfound = false;
@@ -348,8 +367,10 @@ treatDatasets = function(response, idDataset, createJSON, checkCSV){
 		var call;
 		if(config.server.is_ssl_certified){
 			call = http.get(opt, process);
+			//console.log(call);
 		} else {
 			call = http.get(host+'/api/action/package_show?id='+idDataset, process);
+			//console.log(call);
 		}
 		
 		call.on("error", function(err) {
@@ -468,7 +489,8 @@ workOnGeoJson = function(response, datasetJson, csvResourceJson, dateGeoFile, cr
 				port: port, //443 si https
 				headers: {
 					'Content-Type': 'application/json',
-					'Content-Length': data.length
+					'Content-Length': data.length,
+					'Authorization': ckan_key
 				}
 			};
 			var req = http.request(opt, function(res) {

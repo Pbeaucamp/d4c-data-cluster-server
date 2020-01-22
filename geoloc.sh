@@ -30,6 +30,6 @@ p=$10
 s=60
 f='/home/user-client/data/temp'
         
-#echo "/usr/bin/java -jar /home/user-client/data/bpm.geoloc.creator_1.0.0.jar -g $g -n $n -np $np -d $d -k $k -pid $pid -rid $rid -rs "$rs" -re "$re" -oa $oa -a "$a" -p "$p" -s $s -f $f"
+echo "/usr/bin/java -jar /home/user-client/data/bpm.geoloc.creator_1.0.0.jar -g $g -n $n -np $np -d $d -k $k -pid $pid -rid $rid -rs \"$rs\" -re \"$re\" -oa $oa -a \"$a\" -p \"$p\" -s $s -f $f"
 /usr/bin/java -jar /home/user-client/data/bpm.geoloc.creator_1.0.0.jar -g $g -n $n -np $np -d $d -k $k -pid $pid -rid $rid -rs "$rs" -re "$re" -oa $oa -a "$a" -p "$p" -s $s -f $f
-#> /home/user-client/data/log.txt
+> /home/user-client/data/log.txt

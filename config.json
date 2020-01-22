@@ -8,7 +8,8 @@
 	},
 	"ckan":
 	{
-		"url":"https://kmo-backoffice.data4citizen.com"
+		"url":"https://kmo-backoffice.data4citizen.com",
+		"api_key": "4fe30fbc-bdaf-453b-b79c-9459e5a1600d"
 	},
 	"external_access":
 	{

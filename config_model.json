@@ -1,0 +1,19 @@
+{
+	"server":
+	{
+		"is_ssl_certified":true,
+		"ssl_key_path": "/home/certs/xxx.pem",
+		"ssl_cert_path": "/home/certs/xxx.pem",
+		"port": 1337
+	},
+	"ckan":
+	{
+		"url":"https://xxx-backoffice.data4citizen.com",
+		"api_key": "xxx"
+	},
+	"external_access":
+	{
+		"login": "system",
+		"password": "system"
+	}
+}

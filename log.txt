@@ -1,2 +1,0 @@
-Building geojson
-Erreur = Le fichier geojson n'a pas pu ?tre g?n?r? dans le temps limite de 1mins. Vous pouvez essayer de g?n?rer ? nouveau le fichier dans quelques minutes.
