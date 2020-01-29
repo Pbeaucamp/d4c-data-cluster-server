@@ -240,8 +240,8 @@ var cluster = function(zoom, minLat, maxLat, minLong, maxLong, idRes){
 	
     var path = clustersPath + idRes + "_z" + zoom + ".geojson";
     var data;
-    if (fs.existsSync(path)) {
-        var contents = fs.readFileSync(path);console.log(path);
+    if (fs.existsSync(__dirname + "/" + path)) {
+        var contents = fs.readFileSync(__dirname + "/" + path);console.log(__dirname + "/" + path);
         var jsonContent = JSON.parse(contents);console.log(jsonContent.features.length);
         index2.load(jsonContent.features);console.log("index2.getClusters(["+minLong+", "+minLat+", "+maxLong+", "+maxLat+"], "+zoom+")");
         data = index2.getClusters([minLong, minLat, maxLong, maxLat], zoom);
