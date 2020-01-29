@@ -2,14 +2,14 @@
 Description=Map Clustering Service
 
 [Service]
-ExecStart=/usr/bin/nodejs /home/bpm/data/nodeCluster.js
+ExecStart=/usr/bin/nodejs /home/user-client/data/nodeCluster.js
 StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=cluster_node
 Restart=always
 RestartSec=10
 Environment=NODE_ENV=production PORT=1337
-WorkingDirectory=/home/bpm/data
+WorkingDirectory=/home/user-client/data
 
 [Install]
 WantedBy=multi-user.target
