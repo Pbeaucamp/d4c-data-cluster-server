@@ -72,7 +72,8 @@ Explications de la configuration:
 	},
 	"ckan":
 	{
-		"url":"http://192.168.2.223"
+		"url":"http://192.168.2.223",
+		"api_key": "xxxxxxxxxxxxxxxxx"
 	},
 	"external_access": //authentification pour le préCluster par exemple
 	{
