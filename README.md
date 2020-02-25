@@ -105,6 +105,14 @@ Il permet de démarrer le serveur NodeJs automatiquement.
 
 Si le lancement du serveur provoque une erreur de compilation, c'est que la version de NodeJs installée par defaut n'est pas assez récente. Se référer alors à cette page pour installer une version plus récente (v8.x par exemple) : https://github.com/nodesource/distributions/blob/master/README.md
 
+## Modification du service si déjà existant
+
+`cp cluster_node.service /etc/systemd/system/cluster_node.service`
+
+`systemctl daemon-reload`
+
+`service cluster_node restart`
+
 ---
 
 ## Quelques explications
