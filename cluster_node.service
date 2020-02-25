@@ -2,7 +2,7 @@
 Description=Map Clustering Service
 
 [Service]
-ExecStart=/usr/bin/nodejs /home/user-client/data/nodeCluster.js
+ExecStart=/usr/bin/node --max-old-space-size=4096 /home/user-client/data/nodeCluster.js
 StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=cluster_node
