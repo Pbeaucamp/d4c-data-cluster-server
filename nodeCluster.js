@@ -100,8 +100,11 @@ var process = function (req, res) {
 								setTimeout(function(){io.sockets.emit("error", "La paramètre 'id' du jeu de données est manquant");}, 1000);
 								return;
 							}
+
+							var colCoordinate = ("colCoordinate" in url_parts.query) ? url_parts.query.colCoordinate.toString() : null;
+							var coordinateSeparator = ("colCoordinateSeparator" in url_parts.query) != undefined ? url_parts.query.colCoordinateSeparator.toString() : null;
 							
-							treatDatasets(res, url_parts.query.id.toString(), true, false);
+							treatDatasets(res, url_parts.query.id.toString(), true, false, colCoordinate, coordinateSeparator);
 							
 							
 						} catch(e){
@@ -182,8 +185,11 @@ var process = function (req, res) {
 								res.end("La paramètre 'id' du jeu de données est manquant");
 								return;
 							}
+
+							var colCoordinate = body.colCoordinate != undefined ? body.colCoordinate.toString() : null;
+							var coordinateSeparator = body.colCoordinateSeparator != undefined ? body.colCoordinateSeparator.toString() : null;
 							
-							treatDatasets(res, body.id.toString(), false, true);	//url_parts.query.createJSON ?
+							treatDatasets(res, body.id.toString(), false, true, body, colCoordinate, coordinateSeparator);	//url_parts.query.createJSON ?
 							
 						} catch(e){
 							console.log(e);
@@ -261,7 +267,7 @@ var cluster = function(zoom, minLat, maxLat, minLong, maxLong, idRes){
     return obj;
 }
 
-treatDatasets = function(response, idDataset, createJSON, checkCSV){
+treatDatasets = function(response, idDataset, createJSON, checkCSV, columnCoordinate, coordinateSeparator){
 		var post = checkCSV;
 		/* si ckan en https*/
 		var opt = {
@@ -337,7 +343,7 @@ treatDatasets = function(response, idDataset, createJSON, checkCSV){
 							console.log(lastModified);
 							if(lastModified > dateGeoFile || dateGeoFile == null){
 								//work on geojson
-								workOnGeoJson(response, result, res, dateGeoFile, createJSON, post);
+								workOnGeoJson(response, result, res, dateGeoFile, createJSON, post, columnCoordinate, coordinateSeparator);
 							} else {
 								//TODO on recheck ?
 								
@@ -346,7 +352,7 @@ treatDatasets = function(response, idDataset, createJSON, checkCSV){
 							break;
 						} else {
 							//work on geojson
-							workOnGeoJson(response, result, res, dateGeoFile, createJSON, post);
+							workOnGeoJson(response, result, res, dateGeoFile, createJSON, post, columnCoordinate, coordinateSeparator);
 							break;
 						}
 					}
@@ -385,7 +391,7 @@ treatDatasets = function(response, idDataset, createJSON, checkCSV){
 		});
 }
 
-workOnGeoJson = function(response, datasetJson, csvResourceJson, dateGeoFile, createJSON, post){
+workOnGeoJson = function(response, datasetJson, csvResourceJson, dateGeoFile, createJSON, post, columnCoordinate, coordinateSeparator){
 	//test geojson mise à jour
 	var recentGeofound = false;var recentGeo = null;
 	for(var i=0; i<datasetJson.resources.length; i++){
@@ -499,8 +505,9 @@ workOnGeoJson = function(response, datasetJson, csvResourceJson, dateGeoFile, cr
 				res.on('data', (d) => {
 					//process.stdout.write(d);
 					var fields = Object.keys(JSON.parse(d).result.schema);
-					var fieldId = "id";var fieldCoord = "coordonnees";
-					var idRegex = /id|num|code|siren|bureau|nofiness|depcom/;
+					var fieldId = "id";
+					var fieldCoord = "coordonnees";
+					// var idRegex = /id|num|code|siren|bureau|nofiness|depcom/;
 					var coordRegex = /geo_point|coordin|coordon|geopoint|geoPoint|pav_positiont2d|geoloc|wgs84|equgpsy_x|geoban|codegeo/;
 					console.log(fields);
 					/*if(fields.indexOf('id') == -1){ 
@@ -513,14 +520,29 @@ workOnGeoJson = function(response, datasetJson, csvResourceJson, dateGeoFile, cr
 					}*/
 					fieldId = '_id';
 					console.log(fieldId);
-					if(fields.indexOf('coordonnees') == -1){ 
-						for(var i=0;i<fields.length;i++){
-							if(coordRegex.exec(fields[i]) != null){
-								fieldCoord = fields[i];
-								break;
-							} 
+
+					// We check if the coordinate column is defined as a parameters.
+					// If not we check if the column coordonnees exist
+					// If not we apply a pattern to search for a suitable collumn
+					console.log("Coordinate column " + columnCoordinate);
+					if (fields.indexOf(columnCoordinate) == -1) {
+						if(fields.indexOf('coordonnees') == -1){ 
+							for(var i=0;i<fields.length;i++){
+								if(coordRegex.exec(fields[i]) != null){
+									fieldCoord = fields[i];
+									break;
+								} 
+							}
+						}
+						else {
+							fieldCoord = fields[fields.indexOf('coordonnees')];
 						}
 					}
+					else {
+						fieldCoord = fields[fields.indexOf(columnCoordinate)];
+					}
+					console.log(fieldCoord);
+
 					//create file
 					if(!post) setTimeout(function(){io.sockets.emit("info", "Récupération de la ressource csv pour création geojson...");}, 1000);
 										
@@ -547,8 +569,15 @@ workOnGeoJson = function(response, datasetJson, csvResourceJson, dateGeoFile, cr
 							//console.log(data);
 							console.log("file downloaded");
 							const exec = require('child_process').exec;
-							var command = 'java -jar bpm.geojson.creator_0.0.2.jar -i "'+clustersPath + name+'" -o "'+ clustersPath + datasetJson.name +'.geojson" -id "'+fieldId+'" -coor "'+fieldCoord+'"';
+
+							var coordinateSeparatorParam = "";
+							if (coordinateSeparator != undefined) {
+								coordinateSeparatorParam = '-cs "' + coordinateSeparator + '"';
+							}
+
+							var command = 'java -jar bpm.geojson.creator_0.0.2.jar -i "' + clustersPath + name + '" -o "'+ clustersPath + datasetJson.name +'.geojson" -id "'+fieldId+'" -coor "'+fieldCoord+'" ' + coordinateSeparatorParam;
 							console.log(command.split(" "));
+							
 							setTimeout(function(){
 								const childPorcess = exec(command, function(err, stdout, stderr) {
 									if (err) {
