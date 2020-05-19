@@ -101,10 +101,12 @@ var process = function (req, res) {
 								return;
 							}
 
+							var separator = ("separator" in url_parts.query) ? url_parts.query.separator.toString() : null;
+							var encoding = ("encoding" in url_parts.query) != undefined ? url_parts.query.encoding.toString() : null;
 							var colCoordinate = ("colCoordinate" in url_parts.query) ? url_parts.query.colCoordinate.toString() : null;
 							var coordinateSeparator = ("colCoordinateSeparator" in url_parts.query) != undefined ? url_parts.query.colCoordinateSeparator.toString() : null;
 							
-							treatDatasets(res, url_parts.query.id.toString(), true, false, colCoordinate, coordinateSeparator);
+							treatDatasets(res, url_parts.query.id.toString(), true, false, separator, encoding, colCoordinate, coordinateSeparator);
 							
 							
 						} catch(e){
@@ -186,10 +188,12 @@ var process = function (req, res) {
 								return;
 							}
 
+							var separator = body.separator != undefined ? body.separator.toString() : null;
+							var encoding = body.encoding != undefined ? body.encoding.toString() : null;
 							var colCoordinate = body.colCoordinate != undefined ? body.colCoordinate.toString() : null;
 							var coordinateSeparator = body.colCoordinateSeparator != undefined ? body.colCoordinateSeparator.toString() : null;
 							
-							treatDatasets(res, body.id.toString(), false, true, body, colCoordinate, coordinateSeparator);	//url_parts.query.createJSON ?
+							treatDatasets(res, body.id.toString(), false, true, body, separator, encoding, colCoordinate, coordinateSeparator);	//url_parts.query.createJSON ?
 							
 						} catch(e){
 							console.log(e);
@@ -267,7 +271,7 @@ var cluster = function(zoom, minLat, maxLat, minLong, maxLong, idRes){
     return obj;
 }
 
-treatDatasets = function(response, idDataset, createJSON, checkCSV, columnCoordinate, coordinateSeparator){
+treatDatasets = function(response, idDataset, createJSON, checkCSV, separator, encoding, columnCoordinate, coordinateSeparator){
 		var post = checkCSV;
 		/* si ckan en https*/
 		var opt = {
@@ -343,7 +347,7 @@ treatDatasets = function(response, idDataset, createJSON, checkCSV, columnCoordi
 							console.log(lastModified);
 							if(lastModified > dateGeoFile || dateGeoFile == null){
 								//work on geojson
-								workOnGeoJson(response, result, res, dateGeoFile, createJSON, post, columnCoordinate, coordinateSeparator);
+								workOnGeoJson(response, result, res, dateGeoFile, createJSON, post, separator, encoding, columnCoordinate, coordinateSeparator);
 							} else {
 								//TODO on recheck ?
 								
@@ -352,7 +356,7 @@ treatDatasets = function(response, idDataset, createJSON, checkCSV, columnCoordi
 							break;
 						} else {
 							//work on geojson
-							workOnGeoJson(response, result, res, dateGeoFile, createJSON, post, columnCoordinate, coordinateSeparator);
+							workOnGeoJson(response, result, res, dateGeoFile, createJSON, post, separator, encoding, columnCoordinate, coordinateSeparator);
 							break;
 						}
 					}
@@ -391,7 +395,7 @@ treatDatasets = function(response, idDataset, createJSON, checkCSV, columnCoordi
 		});
 }
 
-workOnGeoJson = function(response, datasetJson, csvResourceJson, dateGeoFile, createJSON, post, columnCoordinate, coordinateSeparator){
+workOnGeoJson = function(response, datasetJson, csvResourceJson, dateGeoFile, createJSON, post, separator, encoding, columnCoordinate, coordinateSeparator){
 	//test geojson mise à jour
 	var recentGeofound = false;var recentGeo = null;
 	for(var i=0; i<datasetJson.resources.length; i++){
@@ -570,12 +574,23 @@ workOnGeoJson = function(response, datasetJson, csvResourceJson, dateGeoFile, cr
 							console.log("file downloaded");
 							const exec = require('child_process').exec;
 
-							var coordinateSeparatorParam = "";
-							if (coordinateSeparator != undefined) {
-								coordinateSeparatorParam = '-cs "' + coordinateSeparator + '"';
+							var separatorParam = "";
+							if (separator != undefined) {
+								separatorParam = '-s "' + separator + '"';
 							}
 
-							var command = 'java -jar bpm.geojson.creator_0.0.2.jar -i "' + clustersPath + name + '" -o "'+ clustersPath + datasetJson.name +'.geojson" -id "'+fieldId+'" -coor "'+fieldCoord+'" ' + coordinateSeparatorParam;
+							var encodingParam = "";
+							if (encoding != undefined) {
+								encodingParam = '-e "' + encoding + '"';
+							}
+
+							//We remove this because the separator must be , in coordinate or there is error in datastore database
+							// var coordinateSeparatorParam = "";
+							// if (coordinateSeparator != undefined) {
+							// 	coordinateSeparatorParam = '-cs "' + coordinateSeparator + '"';
+							// }
+
+							var command = 'java -jar bpm.geojson.creator_0.0.2.jar -i "' + clustersPath + name + '" -o "'+ clustersPath + datasetJson.name + '.geojson" -id "' + fieldId + '" ' + separatorParam + ' ' + encodingParam + ' -coor "' + fieldCoord + '" ';
 							console.log(command.split(" "));
 							
 							setTimeout(function(){
@@ -588,7 +603,8 @@ workOnGeoJson = function(response, datasetJson, csvResourceJson, dateGeoFile, cr
 											response.writeHead(500, {'Content-Type': 'application/json'});
 											response.end(err.message);
 										}
-									} else {
+									}
+									else {
 										console.log("Json created " + datasetJson.name);
 										/*var contents = fs.readFileSync(datasetJson.name +'.geojson');
 										console.log("Json red " + contents.length);
