@@ -624,6 +624,8 @@ workOnGeoJson = function(response, datasetJson, csvResourceJson, dateGeoFile, cr
 										}
 										*/
 										
+										console.log("Reading JSON '" + clustersPath + datasetJson.name +".geojson'");
+
 										var transformStream = JSONStream.parse( "*" );
 										var inputStream = fs.createReadStream(clustersPath + datasetJson.name +'.geojson');
 										var jsonContent;
