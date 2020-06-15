@@ -7,11 +7,16 @@ var http = require('http');
 var querystring = require('querystring');
 var url = require('url');
 var fs = require('fs');
+
+
+
 /* chemin vers la lib de cluster */
 var supercluster =require("/home/bpm/data/node_modules/supercluster/dist/supercluster.js");  
 //var oboe = require('oboe');
 var io = require('socket.io');
 var auth = require("basic-auth");
+
+var test = "test";
 
 /* options http pour sécuriser le serveur node en https avec les certificats clients */
 //const options = {
