@@ -16,8 +16,6 @@ var supercluster =require("/home/bpm/data/node_modules/supercluster/dist/supercl
 var io = require('socket.io');
 var auth = require("basic-auth");
 
-var test = "test";
-
 /* options http pour sécuriser le serveur node en https avec les certificats clients */
 //const options = {
 //  key: fs.readFileSync('/etc/nginx/ssl/****.key'),
