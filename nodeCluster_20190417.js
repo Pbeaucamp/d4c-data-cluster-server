@@ -9,6 +9,7 @@ var url = require('url');
 var fs = require('fs');
 
 
+var test2 = "test2";
 
 /* chemin vers la lib de cluster */
 var supercluster =require("/home/bpm/data/node_modules/supercluster/dist/supercluster.js");  
