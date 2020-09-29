@@ -421,7 +421,8 @@ workOnGeoJson = function(response, datasetJson, csvResourceJson, dateGeoFile, cr
 	}
 	
 	
-	if(recentGeofound){
+	if (recentGeofound) {
+		console.log("Geoloc found");
 		if(!post) io.sockets.emit("info", "Récupération de la ressource GeoJson...");
 								
 		var opt2 = {
