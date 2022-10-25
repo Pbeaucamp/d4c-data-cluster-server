@@ -19,7 +19,7 @@
 
 
 g=$1
-n='https://localhost:1337/'
+n='http://localhost:1337/'
 np='/home/user-client/data/clusters'
 d=$2
 k=$3
