@@ -200,15 +200,24 @@ var cluster = function (zoom, minLat, maxLat, minLong, maxLong, idRes) {
 		maxZoom: 16
 	});
 
-	var path = clustersPath + idRes + "_z" + zoom + ".geojson";
+	var dirPath = clustersPath + idRes;
+	if (!fs.existsSync(dirPath)){
+		fs.mkdirSync(dirPath, { recursive: true });
+	}
+
+	var path = dirPath + "/" + idRes + "_z" + zoom + ".geojson";
 	var data;
 	if (fs.existsSync(__dirname + "/" + path)) {
-		var contents = fs.readFileSync(__dirname + "/" + path); console.log(__dirname + "/" + path);
-		var jsonContent = JSON.parse(contents); console.log(jsonContent.features.length);
-		index2.load(jsonContent.features); console.log("index2.getClusters([" + minLong + ", " + minLat + ", " + maxLong + ", " + maxLat + "], " + zoom + ")");
+		var contents = fs.readFileSync(__dirname + "/" + path);
+		console.log(__dirname + "/" + path);
+		var jsonContent = JSON.parse(contents);
+		console.log(jsonContent.features.length);
+		index2.load(jsonContent.features);
+		console.log("index2.getClusters([" + minLong + ", " + minLat + ", " + maxLong + ", " + maxLat + "], " + zoom + ")");
 		data = index2.getClusters([minLong, minLat, maxLong, maxLat], zoom);
-	} else {
-		path = clustersPath + idRes;
+	}
+	else {
+		path = dirPath + "/" + idRes;
 		var contents = fs.readFileSync(path);
 		var jsonContent = JSON.parse(contents);
 		index.load(jsonContent.features);
@@ -265,15 +274,20 @@ treatDatasets = function (response, idDataset, createJSON, checkCSV, separator, 
 			console.log(dname);
 			var csvfound = false;
 
-			var geoFileExists = false; var dateGeoFile = null;
-			geoFileExists = fs.existsSync(clustersPath + dname + '_z0.geojson') || fs.existsSync(clustersPath + dname + '.geojson');
+			var dirPath = clustersPath + dname;
+			if (!fs.existsSync(dirPath)){
+				fs.mkdirSync(dirPath, { recursive: true });
+			}
+
+			var geoFileExists = fs.existsSync(dirPath + "/" + dname + '_z0.geojson') || fs.existsSync(dirPath + "/" + dname + '.geojson');;
+			var dateGeoFile = null;
 			console.log(geoFileExists);
 			if (geoFileExists) {
 				try {
-					var stats = fs.statSync(clustersPath + dname + '_z0.geojson');
+					var stats = fs.statSync(dirPath + "/" + dname + '_z0.geojson');
 					dateGeoFile = new Date(stats.mtime);
 				} catch (e) {
-					var stats = fs.statSync(clustersPath + dname + '.geojson');
+					var stats = fs.statSync(dirPath + "/" + dname + '.geojson');
 					dateGeoFile = new Date(stats.mtime);
 				}
 				dateGeoFile.setHours(dateGeoFile.getHours() + 1);
@@ -378,8 +392,14 @@ workOnGeoJson = function (response, datasetJson, csvResourceJson, dateGeoFile, c
 
 			resp.on('end', function () {
 				if (!post) io.sockets.emit("info", "Le fichier a été récupéré...");
+
+				var dirPath = clustersPath + datasetJson.name;
+				if (!fs.existsSync(dirPath)){
+					fs.mkdirSync(dirPath, { recursive: true });
+				}
+
 				var name = datasetJson.name + '.geojson';
-				fs.writeFile(clustersPath + name, data, 'utf8', function (err) { if (err) throw err; });
+				fs.writeFile(dirPath + "/" + name, data, 'utf8', function (err) { if (err) throw err; });
 
 				var jsonContent = JSON.parse(data);
 				//console.log(data);
@@ -489,8 +509,14 @@ workOnGeoJson = function (response, datasetJson, csvResourceJson, dateGeoFile, c
 
 						resp.on('end', function () {
 							if (!post) setTimeout(function () { io.sockets.emit("info", "Le fichier a été récupéré..."); }, 1000);
+
+							var dirPath = clustersPath + datasetJson.name;
+							if (!fs.existsSync(dirPath)){
+								fs.mkdirSync(dirPath, { recursive: true });
+							}
+
 							var name = datasetJson.name + '.' + csvResourceJson.format;
-							fs.writeFile(clustersPath + name, data, 'utf8', function (err) { if (err) throw err; });
+							fs.writeFile(dirPath + "/" + name, data, 'utf8', function (err) { if (err) throw err; });
 							//console.log(data);
 							console.log("file downloaded");
 							const exec = require('child_process').exec;
@@ -511,7 +537,12 @@ workOnGeoJson = function (response, datasetJson, csvResourceJson, dateGeoFile, c
 							// 	coordinateSeparatorParam = '-cs "' + coordinateSeparator + '"';
 							// }
 
-							var command = 'java -jar bpm.geojson.creator_0.0.2.jar -i "' + clustersPath + name + '" -o "' + clustersPath + datasetJson.name + '.geojson" -id "' + fieldId + '" ' + separatorParam + ' ' + encodingParam + ' -coor "' + fieldCoord + '" ';
+							var dirPath = clustersPath + datasetJson.name;
+							if (!fs.existsSync(dirPath)){
+								fs.mkdirSync(dirPath, { recursive: true });
+							}
+
+							var command = 'java -jar bpm.geojson.creator_0.0.2.jar -i "' + dirPath + "/" + name + '" -o "' + dirPath + "/" + datasetJson.name + '.geojson" -id "' + fieldId + '" ' + separatorParam + ' ' + encodingParam + ' -coor "' + fieldCoord + '" ';
 							console.log(command.split(" "));
 
 							setTimeout(function () {
@@ -526,11 +557,16 @@ workOnGeoJson = function (response, datasetJson, csvResourceJson, dateGeoFile, c
 										}
 									}
 									else {
+										var dirPath = clustersPath + datasetJson.name;
+										if (!fs.existsSync(dirPath)){
+											fs.mkdirSync(dirPath, { recursive: true });
+										}
+
 										console.log("Json created " + datasetJson.name);
-										console.log("Reading JSON '" + clustersPath + datasetJson.name + ".geojson'");
+										console.log("Reading JSON '" + dirPath + "/" + datasetJson.name + ".geojson'");
 
 										var transformStream = JSONStream.parse("*");
-										var inputStream = fs.createReadStream(clustersPath + datasetJson.name + '.geojson');
+										var inputStream = fs.createReadStream(dirPath + "/" + datasetJson.name + '.geojson');
 										var jsonContent;
 										inputStream.pipe(transformStream)
 											// Each "data" event will emit one item in our record-set.
@@ -626,13 +662,18 @@ preCluster = function (jsonContent, dname) {
 	jsonContent.features = jsonContent.features.filter(function (f) { return f.geometry != null && f.geometry.coordinates.length > 1; });
 	index.load(jsonContent.features);
 
+	var dirPath = clustersPath + dname;
+	if (!fs.existsSync(dirPath)){
+		fs.mkdirSync(dirPath, { recursive: true });
+	}
+
 	for (var i = 1; i < 17; i++) {
 		var obj = {
 			type: "FeatureCollection"
 		};
 		obj.features = index.getClusters([-180, -85, 180, 85], i);
 		console.log("file zoom" + i + " with " + obj.features.length + " features");
-		fs.writeFile(clustersPath + dname + '_z' + i + '.geojson', JSON.stringify(obj), 'utf8', function (err) { if (err) throw err; });
+		fs.writeFile(dirPath + "/" + dname + '_z' + i + '.geojson', JSON.stringify(obj), 'utf8', function (err) { if (err) throw err; });
 		io.sockets.emit("info", "Zoom " + i + " traité...");
 	}
 	console.log("is finished with success");
