@@ -200,6 +200,10 @@ var cluster = function (zoom, minLat, maxLat, minLong, maxLong, idRes) {
 		maxZoom: 16
 	});
 
+	if (zoom <= 0) {
+		zoom = 1;
+	}
+
 	var dirPath = clustersPath + idRes;
 	if (!fs.existsSync(dirPath)){
 		fs.mkdirSync(dirPath, { recursive: true });
