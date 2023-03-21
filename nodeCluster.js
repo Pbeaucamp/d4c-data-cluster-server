@@ -7,20 +7,22 @@ var io = require('socket.io');
 var auth = require("basic-auth");
 JSONStream = require('JSONStream');
 
+var config = require('./config.json');
+
 var supercluster = require(__dirname + "/node_modules/supercluster/dist/supercluster.js");
 
 // Define configuration
-var ckanUrl = process.env.CKAN_URL;
-var ckanApiKey = process.env.CKAN_API_KEY;
-var externalLogin = process.env.CLUSTER_EXTERNAL_LOGIN || 'system';
-var externalPassword = process.env.CLUSTER_EXTERNAL_PASSWORD || 'system';
-var clusterPort = process.env.CLUSTER_PORT || 1337;
-var isSslCertified = process.env.CLUSTER_IS_SSL || false;
+var ckanUrl = process.env.CKAN_URL || config.ckan.url;
+var ckanApiKey = process.env.CKAN_API_KEY || config.ckan.api_key;
+var externalLogin = process.env.CLUSTER_EXTERNAL_LOGIN || config.external_access.login;
+var externalPassword = process.env.CLUSTER_EXTERNAL_PASSWORD || config.external_access.password;
+var clusterPort = process.env.CLUSTER_PORT || config.server.port;
+var isSslCertified = process.env.CLUSTER_IS_SSL || config.server.is_ssl_certified;
 
 /* librairie de requete http, depend de si le ckan est ne https ou non*/
 var ckan_key = ckanApiKey != undefined ? ckanApiKey : "";
 
-var parsedUrl = require('url').parse(ckanUrl);
+var parsedUrl = url.parse(ckanUrl);
 var protocol = parsedUrl.protocol;
 var hostname = parsedUrl.hostname;
 var port = parsedUrl.port;
@@ -28,7 +30,7 @@ var port = parsedUrl.port;
 console.log("Ckan configuration")
 console.log("Protocol: " + protocol)
 console.log("Hostname: " + hostname)
-console.log("Port: " + port)
+console.log("CKAN Port: " + port)
 
 var http = protocol.includes("https") ? require('https') : require('http');
 
@@ -37,15 +39,15 @@ port = port != undefined ? port : (protocol.includes("https") ? 443 : 80);
 
 /* options http pour sécuriser le serveur node en https avec les certificats clients */
 /* Disable for now */
-// var options = null;
-// if (isSslCertified) {
-// 	//EX:  key: fs.readFileSync('/etc/nginx/ssl/****.key'),
-// 	//EX:  cert: fs.readFileSync('/etc/nginx/ssl/****.cer')
-// 	options = {
-// 		key: fs.readFileSync(config.server.ssl_key_path),
-// 		cert: fs.readFileSync(config.server.ssl_cert_path)
-// 	};
-// }
+var options = null;
+if (isSslCertified) {
+	//EX:  key: fs.readFileSync('/etc/nginx/ssl/****.key'),
+	//EX:  cert: fs.readFileSync('/etc/nginx/ssl/****.cer')
+	options = {
+		key: fs.readFileSync(config.server.ssl_key_path),
+		cert: fs.readFileSync(config.server.ssl_cert_path)
+	};
+}
 
 var clustersPath = "clusters/";
 
