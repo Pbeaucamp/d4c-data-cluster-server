@@ -30,7 +30,8 @@ console.log("Protocol: " + protocol)
 console.log("Hostname: " + hostname)
 console.log("Port: " + port)
 
-var http = protocol.includes("https") ? require('https') : require('http');
+var httpCkan = protocol.includes("https") ? require('https') : require('http');
+var http = isSslCertified ? require('https') : require('http');
 
 // Getting ckan port from url if available
 port = port != undefined ? port : (protocol.includes("https") ? 443 : 80);
@@ -187,7 +188,7 @@ var clusterProcess = function (req, res) {
 
 var server = isSslCertified ? http.createServer(options, clusterProcess).listen(clusterPort, '0.0.0.0') : http.createServer(clusterProcess).listen(clusterPort, '0.0.0.0');
 io = io.listen(server);
-console.log('Server running at http://0.0.0.0:' + clusterPort + '/');
+console.log('Server running at ' + (isSslCertified ? 'https' : 'http') + '://0.0.0.0:' + clusterPort + '/ with SSL ' + (isSslCertified ? 'activated' : 'disabled'));
 
 var cluster = function (zoom, minLat, maxLat, minLong, maxLong, idRes) {
 	console.log('getCluster(' + zoom + ', ' + minLat + ', ' + maxLat + ', ' + minLong + ', ' + maxLong + ', ' + idRes + ')');
@@ -334,7 +335,7 @@ treatDatasets = function (response, idDataset, createJSON, checkCSV, separator, 
 		});
 	};
 
-	var call = isSslCertified ? http.get(opt, clusterProcess) : http.get(protocol + "//" + hostname + ":" + port + '/api/action/package_show?id=' + idDataset, clusterProcess);
+	var call = isSslCertified ? httpCkan.get(opt, clusterProcess) : httpCkan.get(protocol + "//" + hostname + ":" + port + '/api/action/package_show?id=' + idDataset, clusterProcess);
 	call.on("error", function (err) {
 		console.log("Error: " + err.message);
 		if (!post) {
@@ -416,7 +417,7 @@ workOnGeoJson = function (response, datasetJson, csvResourceJson, dateGeoFile, c
 			});
 
 		};
-		var call = isSslCertified ? http.get(opt2, clusterProcess) : http.get(recentGeo.url, clusterProcess);
+		var call = isSslCertified ? httpCkan.get(opt2, clusterProcess) : httpCkan.get(recentGeo.url, clusterProcess);
 		call.on("error", function (err) {
 			console.log("Error: " + err.message);
 			if (!post) {
@@ -444,7 +445,7 @@ workOnGeoJson = function (response, datasetJson, csvResourceJson, dateGeoFile, c
 					'Authorization': ckan_key
 				}
 			};
-			var req = http.request(opt, function (res) {
+			var req = httpCkan.request(opt, function (res) {
 				console.log(`statusCode: ${res.statusCode}`);
 
 				res.on('data', (d) => {
@@ -595,7 +596,7 @@ workOnGeoJson = function (response, datasetJson, csvResourceJson, dateGeoFile, c
 
 					};
 
-					var call = isSslCertified ? http.get(opt2, clusterProcess) : http.get(csvResourceJson.url, clusterProcess);
+					var call = isSslCertified ? httpCkan.get(opt2, clusterProcess) : httpCkan.get(csvResourceJson.url, clusterProcess);
 					call.on("error", function (err) {
 						console.log("Error: " + err.message);
 						if (!post) {
