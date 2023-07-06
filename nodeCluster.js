@@ -1,5 +1,3 @@
-﻿#!/usr/bin nodejs
-
 var querystring = require('querystring');
 var url = require('url');
 var fs = require('fs');
@@ -15,7 +13,7 @@ var ckanApiKey = process.env.CKAN_API_KEY;
 var externalLogin = process.env.CLUSTER_EXTERNAL_LOGIN || 'system';
 var externalPassword = process.env.CLUSTER_EXTERNAL_PASSWORD || 'system';
 var clusterPort = process.env.CLUSTER_PORT || 1337;
-var isSslCertified = process.env.CLUSTER_IS_SSL || false;
+var isSslCertified = process.env.CLUSTER_IS_SSL == "true" || false;
 
 /* librairie de requete http, depend de si le ckan est ne https ou non*/
 var ckan_key = ckanApiKey != undefined ? ckanApiKey : "";
@@ -29,6 +27,7 @@ console.log("Ckan configuration")
 console.log("Protocol: " + protocol)
 console.log("Hostname: " + hostname)
 console.log("Port: " + port)
+console.log("Is SSL: " + isSslCertified)
 
 var httpCkan = protocol.includes("https") ? require('https') : require('http');
 var http = isSslCertified ? require('https') : require('http');
@@ -186,7 +185,16 @@ var clusterProcess = function (req, res) {
 	}
 };
 
-var server = isSslCertified ? http.createServer(options, clusterProcess).listen(clusterPort, '0.0.0.0') : http.createServer(clusterProcess).listen(clusterPort, '0.0.0.0');
+var server = null;
+if (isSslCertified) {
+	console.log('Create https server');
+	http.createServer(options, clusterProcess).listen(clusterPort, '0.0.0.0');
+}
+else {
+	console.log('Create http server');
+	http.createServer(clusterProcess).listen(clusterPort, '0.0.0.0');
+}
+
 io = io.listen(server);
 console.log('Server running at ' + (isSslCertified ? 'https' : 'http') + '://0.0.0.0:' + clusterPort + '/ with SSL ' + (isSslCertified ? 'activated' : 'disabled'));
 
