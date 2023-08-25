@@ -5,17 +5,17 @@ var io = require('socket.io');
 var auth = require("basic-auth");
 JSONStream = require('JSONStream');
 
-var config = require('./config.json');
+var config = moduleIsAvailable('./config.json') ? require('./config.json') : null;
 
 var supercluster = require(__dirname + "/node_modules/supercluster/dist/supercluster.js");
 
 // Define configuration
-var ckanUrl = process.env.CKAN_URL || config.ckan.url;
-var ckanApiKey = process.env.CKAN_API_KEY || config.ckan.api_key;
-var externalLogin = process.env.CLUSTER_EXTERNAL_LOGIN || config.external_access.login;
-var externalPassword = process.env.CLUSTER_EXTERNAL_PASSWORD || config.external_access.password;
-var clusterPort = process.env.CLUSTER_PORT || config.server.port;
-var isSslCertified = process.env.CLUSTER_IS_SSL == "true" || config.server.is_ssl_certified == "true";
+var ckanUrl = process.env.CKAN_URL || (config != null ? config.ckan.url : null);
+var ckanApiKey = process.env.CKAN_API_KEY || (config != null ? config.ckan.api_key : null);
+var externalLogin = process.env.CLUSTER_EXTERNAL_LOGIN || (config != null ? config.external_access.login : null);
+var externalPassword = process.env.CLUSTER_EXTERNAL_PASSWORD || (config != null ? config.external_access.password : null);
+var clusterPort = process.env.CLUSTER_PORT || (config != null ? config.server.port : null);
+var isSslCertified = process.env.CLUSTER_IS_SSL == "true" || (config != null ? config.server.is_ssl_certified == "true" : null);
 
 /* librairie de requete http, depend de si le ckan est ne https ou non*/
 var ckan_key = ckanApiKey != undefined ? ckanApiKey : "";
@@ -40,7 +40,7 @@ port = port != undefined ? port : (protocol.includes("https") ? 443 : 80);
 /* options http pour sécuriser le serveur node en https avec les certificats clients */
 /* Disable for now */
 var options = null;
-if (isSslCertified) {
+if (isSslCertified && config != null) {
 	//EX:  key: fs.readFileSync('/etc/nginx/ssl/****.key'),
 	//EX:  cert: fs.readFileSync('/etc/nginx/ssl/****.cer')
 	options = {
@@ -723,4 +723,13 @@ var clusterDirect = function (zoom, json) {
 	};
 	obj.features = data;
 	return obj;
+}
+
+function moduleIsAvailable(path) {
+    try {
+        require.resolve(path);
+        return true;
+    } catch (e) {
+        return false;
+    }
 }
