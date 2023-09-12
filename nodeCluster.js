@@ -12,10 +12,10 @@ var supercluster = require(__dirname + "/node_modules/supercluster/dist/superclu
 // Define configuration
 var ckanUrl = process.env.CKAN_URL || (config != null ? config.ckan.url : null);
 var ckanApiKey = process.env.CKAN_API_KEY || (config != null ? config.ckan.api_key : null);
-var externalLogin = process.env.CLUSTER_EXTERNAL_LOGIN || (config != null ? config.external_access.login : null);
-var externalPassword = process.env.CLUSTER_EXTERNAL_PASSWORD || (config != null ? config.external_access.password : null);
-var clusterPort = process.env.CLUSTER_PORT || (config != null ? config.server.port : null);
-var isSslCertified = process.env.CLUSTER_IS_SSL == "true" || (config != null ? config.server.is_ssl_certified == "true" : null);
+var externalLogin = process.env.CLUSTER_EXTERNAL_LOGIN || (config != null ? config.external_access.login : 'system');
+var externalPassword = process.env.CLUSTER_EXTERNAL_PASSWORD || (config != null ? config.external_access.password : 'system');
+var clusterPort = process.env.CLUSTER_PORT || (config != null ? config.server.port : 1337);
+var isSslCertified = process.env.CLUSTER_IS_SSL == "true" || (config != null ? config.server.is_ssl_certified == "true" : false);
 
 /* librairie de requete http, depend de si le ckan est ne https ou non*/
 var ckan_key = ckanApiKey != undefined ? ckanApiKey : "";
